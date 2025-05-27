@@ -4,18 +4,46 @@ import requests
 from bs4 import BeautifulSoup
 from langchain_groq import ChatGroq
 from langchain.schema import SystemMessage, HumanMessage
+from sarvamai import SarvamAI
 
+client = SarvamAI(
+    api_subscription_key="sk_tw3vsy4n_LfieQoikM4paSA64meo8rc5x"
+)
 
 # Load Groq API key from environment variable
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-if not GROQ_API_KEY:
-    st.error("Environment variable GROQ_API_KEY not set.")
-    st.stop()
+#if not GROQ_API_KEY:
+#    st.error("Environment variable GROQ_API_KEY not set.")
+#    st.stop()
 
 # Sidebar input
 st.sidebar.title("JD Translator")
 url = st.sidebar.text_input("Enter Job Description URL:")
-language = st.sidebar.selectbox("Translate to", ["English", "Hindi", "Marathi", "Gujurati","Punjabi","Tamil", "Telugu"])
+language = st.sidebar.selectbox("Translate to", ["Hindi", "Marathi", "Gujurati","Punjabi","Tamil", "Telugu"])
+
+def translate_sarvam(text, target_lang):
+    target = 'en-IN'
+    
+    if target_lang == 'Hindi':
+        target = 'hi-IN'
+    elif target_lang == 'Marathi':
+        target = 'mr-IN'
+    elif target_lang == 'Gujurati':
+        target = 'gu-IN'
+    elif target_lang == 'Punjabi':
+        target = 'pa-IN'
+    elif target_lang == 'Tamil':
+        target = 'ta-IN'
+    elif target_lang == 'Telugu':
+        target = 'te-IN'
+
+    response = client.text.translate(
+    input=text,
+    source_language_code="en-IN",
+    target_language_code= target
+    )
+    print(response.translated_text)
+    return response.translated_text
 
 # Function to translate a given section using Groq
 def translate_with_groq(text, target_lang):
@@ -55,7 +83,7 @@ def fetch_and_translate(url, target_lang):
         tag = soup.find("span", id=tag_id)
         if tag:
             original_text = tag.get_text(separator="\n", strip=True)
-            translated = translate_with_groq(original_text, target_lang)
+            translated = translate_sarvam(original_text, target_lang)
             translated = translated.replace("\n", "<br>")
             translated = BeautifulSoup(translated, "html.parser")
             tag.clear()
